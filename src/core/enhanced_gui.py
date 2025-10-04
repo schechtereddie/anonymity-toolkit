@@ -56,6 +56,16 @@ except ImportError as e:
         class ModeHelpDialog:
             def __init__(self, *args, **kwargs): pass
 
+# Import the new UI components (TabManager for modular tab management)
+try:
+    from ..ui.tab_manager import TabManager
+    TAB_MANAGER_AVAILABLE = True
+    logger.info("✅ TabManager available for modular tab coordination")
+except ImportError as e:
+    logger.warning(f"TabManager not available, using legacy tab management: {e}")
+    TAB_MANAGER_AVAILABLE = False
+    TabManager = None
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
