@@ -214,3 +214,75 @@ export async function scrapeProxiesByRegion(
   });
 }
 
+/**
+ * Generate simple cookies for a domain
+ */
+export async function generateCookies(
+  domain: string,
+  count?: number
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("generate_cookies", {
+    domain,
+    count,
+  });
+}
+
+/**
+ * Generate realistic cookies with behavioral patterns
+ */
+export async function generateRealisticCookies(
+  profileId: string,
+  months?: number,
+  sitesPerMonth?: number
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("generate_realistic_cookies", {
+    profileId,
+    months,
+    sitesPerMonth,
+  });
+}
+
+/**
+ * Set cookies in browser context
+ */
+export async function setBrowserCookies(
+  cookies: any[]
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("set_browser_cookies", {
+    cookies,
+  });
+}
+
+/**
+ * Clear cookies for a domain or all domains
+ */
+export async function clearCookies(
+  domain?: string
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("clear_cookies", {
+    domain,
+  });
+}
+
+/**
+ * Export cookies to file
+ */
+export async function exportCookies(
+  filename: string
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("export_cookies", {
+    filename,
+  });
+}
+
+/**
+ * Import cookies from file
+ */
+export async function importCookies(
+  filename: string
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("import_cookies", {
+    filename,
+  });
+}
+

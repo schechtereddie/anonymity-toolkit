@@ -328,3 +328,82 @@ pub async fn scrape_proxies_by_region(
     sidecar.send_command("scrape_proxies_by_region", data)
 }
 
+// Cookie management commands
+#[tauri::command]
+pub async fn generate_cookies(
+    sidecar: State<'_, PythonSidecar>,
+    domain: String,
+    count: Option<u32>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "domain": domain,
+        "count": count.unwrap_or(1),
+    });
+
+    sidecar.send_command("generate_cookies", data)
+}
+
+#[tauri::command]
+pub async fn generate_realistic_cookies(
+    sidecar: State<'_, PythonSidecar>,
+    profile_id: String,
+    months: Option<u32>,
+    sites_per_month: Option<u32>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "profile_id": profile_id,
+        "months": months.unwrap_or(3),
+        "sites_per_month": sites_per_month.unwrap_or(50),
+    });
+
+    sidecar.send_command("generate_realistic_cookies", data)
+}
+
+#[tauri::command]
+pub async fn set_browser_cookies(
+    sidecar: State<'_, PythonSidecar>,
+    cookies: serde_json::Value,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "cookies": cookies,
+    });
+
+    sidecar.send_command("set_browser_cookies", data)
+}
+
+#[tauri::command]
+pub async fn clear_cookies(
+    sidecar: State<'_, PythonSidecar>,
+    domain: Option<String>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "domain": domain,
+    });
+
+    sidecar.send_command("clear_cookies", data)
+}
+
+#[tauri::command]
+pub async fn export_cookies(
+    sidecar: State<'_, PythonSidecar>,
+    filename: String,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "filename": filename,
+    });
+
+    sidecar.send_command("export_cookies", data)
+}
+
+#[tauri::command]
+pub async fn import_cookies(
+    sidecar: State<'_, PythonSidecar>,
+    filename: String,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "filename": filename,
+    });
+
+    sidecar.send_command("import_cookies", data)
+}
+

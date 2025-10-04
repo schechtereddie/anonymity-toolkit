@@ -21,7 +21,14 @@ try:
     PROXY_SCRAPER_AVAILABLE = True
 except ImportError:
     PROXY_SCRAPER_AVAILABLE = False
-    logger.warning("⚠️ Proxy scraper not available")
+
+# Import cookie manager and harvester
+try:
+    from cookie_manager import CookieManager
+    from cookie_harvester import CookieHarvester
+    COOKIE_MANAGER_AVAILABLE = True
+except ImportError:
+    COOKIE_MANAGER_AVAILABLE = False
 
 # Configure logging
 logging.basicConfig(
@@ -269,6 +276,8 @@ class SidecarServer:
         self.browser_launcher = None
         self.leak_detector = None
         self.proxy_manager = None
+        self.cookie_manager = None
+        self.cookie_harvester = None
 
         logger.info("🚀 Python Sidecar starting...")
         self._initialize_modules()
@@ -282,6 +291,14 @@ class SidecarServer:
             self.profile_db = ProfileDatabase()
             self.profile_generator = ProfileGenerator()
             self.proxy_manager = ProxyManager()
+
+            # Initialize cookie manager and harvester
+            if COOKIE_MANAGER_AVAILABLE:
+                self.cookie_manager = CookieManager()
+                self.cookie_harvester = CookieHarvester()
+                logger.info("✅ Cookie manager initialized")
+            else:
+                logger.warning("⚠️ Cookie manager not available")
 
             logger.info("✅ Core modules initialized successfully")
 
@@ -311,6 +328,13 @@ class SidecarServer:
             # Proxy scraper commands
             'scrape_proxies': self.handle_scrape_proxies,
             'scrape_proxies_by_region': self.handle_scrape_proxies_by_region,
+            # Cookie management commands
+            'generate_cookies': self.handle_generate_cookies,
+            'generate_realistic_cookies': self.handle_generate_realistic_cookies,
+            'set_browser_cookies': self.handle_set_browser_cookies,
+            'clear_cookies': self.handle_clear_cookies,
+            'export_cookies': self.handle_export_cookies,
+            'import_cookies': self.handle_import_cookies,
         }
         
         handler = handlers.get(command)
@@ -912,6 +936,190 @@ class SidecarServer:
 
         except Exception as e:
             logger.error(f"Error scraping proxies by region: {e}")
+            logger.error(traceback.format_exc())
+            return {'success': False, 'error': str(e)}
+
+    def handle_generate_cookies(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate simple cookies for a domain"""
+        try:
+            if not COOKIE_MANAGER_AVAILABLE:
+                return {
+                    'success': False,
+                    'error': 'Cookie manager not available'
+                }
+
+            domain = data.get('domain', 'example.com')
+            count = data.get('count', 1)
+
+            logger.info(f"🍪 Generating {count} cookies for {domain}...")
+
+            cookies = self.cookie_manager.create_cookies(domain, count)
+
+            return {
+                'success': True,
+                'cookies': cookies,
+                'domain': domain,
+                'count': len(cookies),
+                'message': f'Generated {len(cookies)} cookies for {domain}'
+            }
+
+        except Exception as e:
+            logger.error(f"Error generating cookies: {e}")
+            logger.error(traceback.format_exc())
+            return {'success': False, 'error': str(e)}
+
+    def handle_generate_realistic_cookies(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate realistic cookies with behavioral patterns"""
+        try:
+            if not COOKIE_MANAGER_AVAILABLE:
+                return {
+                    'success': False,
+                    'error': 'Cookie manager not available'
+                }
+
+            profile_id = data.get('profile_id', 'default')
+            months = data.get('months', 3)
+            sites_per_month = data.get('sites_per_month', 50)
+
+            logger.info(f"🍪 Generating realistic cookies for profile {profile_id} ({months} months, {sites_per_month} sites/month)...")
+
+            # Generate comprehensive cookies with behavioral patterns
+            cookies = self.cookie_harvester.generate_comprehensive_cookies(
+                profile_id=profile_id,
+                months=months,
+                sites_per_month=sites_per_month
+            )
+
+            logger.info(f"✅ Generated {len(cookies)} realistic cookies")
+
+            return {
+                'success': True,
+                'cookies': cookies,
+                'profile_id': profile_id,
+                'count': len(cookies),
+                'months': months,
+                'message': f'Generated {len(cookies)} realistic cookies for {profile_id}'
+            }
+
+        except Exception as e:
+            logger.error(f"Error generating realistic cookies: {e}")
+            logger.error(traceback.format_exc())
+            return {'success': False, 'error': str(e)}
+
+    def handle_set_browser_cookies(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Set cookies in browser context (Playwright)"""
+        try:
+            cookies = data.get('cookies', [])
+            browser_context = data.get('browser_context', None)
+
+            if not cookies:
+                return {
+                    'success': False,
+                    'error': 'No cookies provided'
+                }
+
+            logger.info(f"🍪 Setting {len(cookies)} cookies in browser...")
+
+            # Note: This would be called when launching browser with cookies
+            # The actual implementation happens in browser_launcher
+            # This handler just validates and prepares the cookies
+
+            return {
+                'success': True,
+                'count': len(cookies),
+                'message': f'Prepared {len(cookies)} cookies for browser'
+            }
+
+        except Exception as e:
+            logger.error(f"Error setting browser cookies: {e}")
+            logger.error(traceback.format_exc())
+            return {'success': False, 'error': str(e)}
+
+    def handle_clear_cookies(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Clear cookies for a domain or all domains"""
+        try:
+            if not COOKIE_MANAGER_AVAILABLE:
+                return {
+                    'success': False,
+                    'error': 'Cookie manager not available'
+                }
+
+            domain = data.get('domain', None)
+
+            if domain:
+                # Clear cookies for specific domain
+                if domain in self.cookie_manager.cookies_jar:
+                    del self.cookie_manager.cookies_jar[domain]
+                    logger.info(f"🗑️ Cleared cookies for {domain}")
+                    message = f'Cleared cookies for {domain}'
+                else:
+                    message = f'No cookies found for {domain}'
+            else:
+                # Clear all cookies
+                count = len(self.cookie_manager.cookies_jar)
+                self.cookie_manager.cookies_jar = {}
+                logger.info(f"🗑️ Cleared all cookies ({count} domains)")
+                message = f'Cleared all cookies ({count} domains)'
+
+            return {
+                'success': True,
+                'message': message
+            }
+
+        except Exception as e:
+            logger.error(f"Error clearing cookies: {e}")
+            logger.error(traceback.format_exc())
+            return {'success': False, 'error': str(e)}
+
+    def handle_export_cookies(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Export cookies to file"""
+        try:
+            if not COOKIE_MANAGER_AVAILABLE:
+                return {
+                    'success': False,
+                    'error': 'Cookie manager not available'
+                }
+
+            filename = data.get('filename', 'cookies_export.json')
+
+            self.cookie_manager.export_cookies(filename)
+            logger.info(f"💾 Exported cookies to {filename}")
+
+            return {
+                'success': True,
+                'filename': filename,
+                'message': f'Cookies exported to {filename}'
+            }
+
+        except Exception as e:
+            logger.error(f"Error exporting cookies: {e}")
+            logger.error(traceback.format_exc())
+            return {'success': False, 'error': str(e)}
+
+    def handle_import_cookies(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Import cookies from file"""
+        try:
+            if not COOKIE_MANAGER_AVAILABLE:
+                return {
+                    'success': False,
+                    'error': 'Cookie manager not available'
+                }
+
+            filename = data.get('filename', 'cookies_export.json')
+
+            self.cookie_manager.import_cookies(filename)
+            count = len(self.cookie_manager.cookies_jar)
+            logger.info(f"📥 Imported cookies from {filename} ({count} domains)")
+
+            return {
+                'success': True,
+                'filename': filename,
+                'count': count,
+                'message': f'Imported cookies from {filename} ({count} domains)'
+            }
+
+        except Exception as e:
+            logger.error(f"Error importing cookies: {e}")
             logger.error(traceback.format_exc())
             return {'success': False, 'error': str(e)}
 

@@ -39,6 +39,13 @@ pub fn run() {
             // Proxy scraper commands
             sidecar::scrape_proxies,
             sidecar::scrape_proxies_by_region,
+            // Cookie management commands
+            sidecar::generate_cookies,
+            sidecar::generate_realistic_cookies,
+            sidecar::set_browser_cookies,
+            sidecar::clear_cookies,
+            sidecar::export_cookies,
+            sidecar::import_cookies,
         ])
         .setup(|app| {
             // Auto-start the Python sidecar

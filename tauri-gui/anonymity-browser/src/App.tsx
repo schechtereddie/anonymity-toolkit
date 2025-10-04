@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, Zap, Eye, Globe, Lock, Activity, CheckCircle, XCircle, User, Chrome, Menu } from "lucide-react";
+import { Shield, Zap, Eye, Globe, Lock, Activity, CheckCircle, XCircle, User, Chrome, Menu, Cookie } from "lucide-react";
 import { pingSidecar, getSidecarStatus, startSidecar } from "./api";
 import ProfileManager from "./components/ProfileManager";
 import BrowserLauncher from "./components/BrowserLauncher";
 import LeakDetector from "./components/LeakDetector";
 import ProxyManager from "./components/ProxyManager";
+import CookieManager from "./components/CookieManager";
 import Settings from "./components/Settings";
 
-type TabType = "home" | "profiles" | "browser" | "leaks" | "proxies" | "settings";
+type TabType = "home" | "profiles" | "browser" | "leaks" | "proxies" | "cookies" | "settings";
 
 function App() {
   const [status, setStatus] = useState<string>("Initializing...");
@@ -149,6 +150,12 @@ function App() {
               label="Proxies"
             />
             <TabButton
+              active={activeTab === "cookies"}
+              onClick={() => setActiveTab("cookies")}
+              icon={Cookie}
+              label="Cookies"
+            />
+            <TabButton
               active={activeTab === "settings"}
               onClick={() => setActiveTab("settings")}
               icon={Menu}
@@ -285,6 +292,7 @@ function App() {
         {activeTab === "browser" && <BrowserLauncher />}
         {activeTab === "leaks" && <LeakDetector />}
         {activeTab === "proxies" && <ProxyManager />}
+        {activeTab === "cookies" && <CookieManager />}
         {activeTab === "settings" && <Settings />}
       </main>
 
