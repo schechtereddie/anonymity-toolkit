@@ -29,6 +29,12 @@ export default {
           secondary: '#A0A3BD',
           muted: '#6B7280',
         },
+        // Border colors
+        border: {
+          DEFAULT: 'rgba(0, 255, 255, 0.2)',
+          light: 'rgba(0, 255, 255, 0.1)',
+          strong: 'rgba(0, 255, 255, 0.4)',
+        },
       },
       fontFamily: {
         heading: ['Orbitron', 'Rajdhani', 'sans-serif'],

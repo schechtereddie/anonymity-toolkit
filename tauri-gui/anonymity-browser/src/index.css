@@ -9,18 +9,18 @@
 /* Base styles */
 @layer base {
   * {
-    @apply border-border;
+    border-color: rgba(0, 255, 255, 0.2);
   }
-  
+
   body {
     @apply bg-dark-bg text-text-primary font-body;
     @apply antialiased;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-bold;
   }
-  
+
   code, pre {
     @apply font-mono;
   }
