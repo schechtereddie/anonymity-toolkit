@@ -11,8 +11,17 @@ import traceback
 import sqlite3
 import time
 import requests
+import asyncio
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+
+# Import proxy scraper
+try:
+    from proxy_scraper import AdvancedProxyScraper
+    PROXY_SCRAPER_AVAILABLE = True
+except ImportError:
+    PROXY_SCRAPER_AVAILABLE = False
+    logger.warning("⚠️ Proxy scraper not available")
 
 # Configure logging
 logging.basicConfig(
@@ -299,6 +308,9 @@ class SidecarServer:
             'delete_proxy': self.handle_delete_proxy,
             'get_active_proxy': self.handle_get_active_proxy,
             'set_active_proxy': self.handle_set_active_proxy,
+            # Proxy scraper commands
+            'scrape_proxies': self.handle_scrape_proxies,
+            'scrape_proxies_by_region': self.handle_scrape_proxies_by_region,
         }
         
         handler = handlers.get(command)
@@ -767,6 +779,140 @@ class SidecarServer:
 
         except Exception as e:
             logger.error(f"Error setting active proxy: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def handle_scrape_proxies(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Scrape proxies from public sources"""
+        try:
+            if not PROXY_SCRAPER_AVAILABLE:
+                return {
+                    'success': False,
+                    'error': 'Proxy scraper not available. Install dependencies: beautifulsoup4, aiohttp'
+                }
+
+            max_proxies = data.get('max_proxies', 100)
+            proxy_type = data.get('type', 'socks5')  # socks5, http, https
+            auto_save = data.get('auto_save', True)
+
+            logger.info(f"🔍 Starting proxy scraping (type: {proxy_type}, max: {max_proxies})...")
+
+            # Initialize scraper
+            scraper = AdvancedProxyScraper()
+
+            # Scrape proxies
+            proxies = scraper.scrape_proxies_parallel(max_workers=20)
+
+            # Limit results
+            proxies = proxies[:max_proxies]
+
+            logger.info(f"✅ Found {len(proxies)} proxies")
+
+            # Auto-save to database if requested
+            saved_count = 0
+            if auto_save and proxies:
+                for proxy_str in proxies:
+                    try:
+                        # Parse proxy string (format: IP:PORT)
+                        parts = proxy_str.split(':')
+                        if len(parts) == 2:
+                            host = parts[0]
+                            port = int(parts[1])
+
+                            # Generate unique ID
+                            proxy_id = f"scraped_{host}_{port}"
+
+                            # Add to database
+                            success = self.proxy_manager.add_proxy(
+                                proxy_id=proxy_id,
+                                name=f"Scraped {proxy_type.upper()} {host}",
+                                proxy_type=proxy_type,
+                                host=host,
+                                port=port
+                            )
+
+                            if success:
+                                saved_count += 1
+
+                    except Exception as e:
+                        logger.warning(f"Failed to save proxy {proxy_str}: {e}")
+
+                logger.info(f"💾 Saved {saved_count}/{len(proxies)} proxies to database")
+
+            return {
+                'success': True,
+                'proxies': proxies,
+                'count': len(proxies),
+                'saved_count': saved_count if auto_save else 0,
+                'message': f'Found {len(proxies)} proxies, saved {saved_count} to database' if auto_save else f'Found {len(proxies)} proxies'
+            }
+
+        except Exception as e:
+            logger.error(f"Error scraping proxies: {e}")
+            logger.error(traceback.format_exc())
+            return {'success': False, 'error': str(e)}
+
+    def handle_scrape_proxies_by_region(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Scrape proxies from a specific geographic region"""
+        try:
+            if not PROXY_SCRAPER_AVAILABLE:
+                return {
+                    'success': False,
+                    'error': 'Proxy scraper not available'
+                }
+
+            region = data.get('region', 'united_states')
+            max_proxies = data.get('max_proxies', 50)
+            auto_save = data.get('auto_save', True)
+
+            logger.info(f"🌍 Scraping proxies for region: {region}...")
+
+            # Initialize scraper
+            scraper = AdvancedProxyScraper()
+
+            # Scrape region-specific proxies
+            proxies = scraper.scrape_proxies_for_region(region, max_proxies=max_proxies)
+
+            logger.info(f"✅ Found {len(proxies)} proxies in {region}")
+
+            # Auto-save to database
+            saved_count = 0
+            if auto_save and proxies:
+                for proxy_str in proxies:
+                    try:
+                        parts = proxy_str.split(':')
+                        if len(parts) == 2:
+                            host = parts[0]
+                            port = int(parts[1])
+                            proxy_id = f"scraped_{region}_{host}_{port}"
+
+                            success = self.proxy_manager.add_proxy(
+                                proxy_id=proxy_id,
+                                name=f"{region.title()} {host}",
+                                proxy_type='socks5',
+                                host=host,
+                                port=port
+                            )
+
+                            if success:
+                                saved_count += 1
+
+                    except Exception as e:
+                        logger.warning(f"Failed to save proxy {proxy_str}: {e}")
+
+                logger.info(f"💾 Saved {saved_count}/{len(proxies)} proxies")
+
+            return {
+                'success': True,
+                'proxies': proxies,
+                'count': len(proxies),
+                'saved_count': saved_count if auto_save else 0,
+                'region': region,
+                'message': f'Found {len(proxies)} proxies in {region}, saved {saved_count}'
+            }
+
+        except Exception as e:
+            logger.error(f"Error scraping proxies by region: {e}")
+            logger.error(traceback.format_exc())
             return {'success': False, 'error': str(e)}
 
     def run(self):

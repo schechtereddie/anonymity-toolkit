@@ -82,3 +82,9 @@ Explain non-trivial code decisions to humans.
 Keep generated code auditable and maintainable.
 
 Learn from previous iterations and improve suggestions over time.
+
+chgeck for new mcp tools that will helkp that are free or open source
+
+always research code before coding
+
+always 

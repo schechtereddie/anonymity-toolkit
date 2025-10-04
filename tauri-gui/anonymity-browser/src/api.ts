@@ -184,3 +184,33 @@ export async function setActiveProxy(proxyId: string | null): Promise<SidecarRes
   });
 }
 
+/**
+ * Scrape proxies from public sources
+ */
+export async function scrapeProxies(
+  maxProxies?: number,
+  proxyType?: 'socks5' | 'http' | 'https',
+  autoSave?: boolean
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("scrape_proxies", {
+    maxProxies,
+    proxyType,
+    autoSave,
+  });
+}
+
+/**
+ * Scrape proxies from a specific geographic region
+ */
+export async function scrapeProxiesByRegion(
+  region: string,
+  maxProxies?: number,
+  autoSave?: boolean
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("scrape_proxies_by_region", {
+    region,
+    maxProxies,
+    autoSave,
+  });
+}
+

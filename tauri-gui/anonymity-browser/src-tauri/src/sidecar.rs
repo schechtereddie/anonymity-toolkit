@@ -295,3 +295,36 @@ pub async fn set_active_proxy(
     sidecar.send_command("set_active_proxy", data)
 }
 
+// Proxy scraper commands
+#[tauri::command]
+pub async fn scrape_proxies(
+    sidecar: State<'_, PythonSidecar>,
+    max_proxies: Option<u32>,
+    proxy_type: Option<String>,
+    auto_save: Option<bool>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "max_proxies": max_proxies.unwrap_or(100),
+        "type": proxy_type.unwrap_or_else(|| "socks5".to_string()),
+        "auto_save": auto_save.unwrap_or(true),
+    });
+
+    sidecar.send_command("scrape_proxies", data)
+}
+
+#[tauri::command]
+pub async fn scrape_proxies_by_region(
+    sidecar: State<'_, PythonSidecar>,
+    region: String,
+    max_proxies: Option<u32>,
+    auto_save: Option<bool>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "region": region,
+        "max_proxies": max_proxies.unwrap_or(50),
+        "auto_save": auto_save.unwrap_or(true),
+    });
+
+    sidecar.send_command("scrape_proxies_by_region", data)
+}
+

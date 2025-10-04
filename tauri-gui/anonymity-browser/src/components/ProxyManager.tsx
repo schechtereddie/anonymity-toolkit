@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, RefreshCw, CheckCircle, XCircle, Globe, Shield } from 'lucide-react';
-import { addProxy, listProxies, testProxy, deleteProxy, getActiveProxy, setActiveProxy } from '../api';
+import { Plus, Trash2, RefreshCw, CheckCircle, XCircle, Globe, Shield, Download } from 'lucide-react';
+import { addProxy, listProxies, testProxy, deleteProxy, getActiveProxy, setActiveProxy, scrapeProxies } from '../api';
 
 interface Proxy {
   id: string;
@@ -20,6 +20,7 @@ export default function ProxyManager() {
   const [loading, setLoading] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [testingProxy, setTestingProxy] = useState<string | null>(null);
+  const [scraping, setScraping] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -117,6 +118,27 @@ export default function ProxyManager() {
     }
   };
 
+  const handleScrapeProxies = async () => {
+    setScraping(true);
+    try {
+      const response = await scrapeProxies(100, 'socks5', true);
+
+      if (response.success) {
+        const count = response.count || 0;
+        const savedCount = response.saved_count || 0;
+        alert(`✅ Scraping complete!\n\nFound: ${count} proxies\nSaved: ${savedCount} proxies\n\nProxies have been added to your list.`);
+        await loadProxies();
+      } else {
+        alert(`Failed to scrape proxies: ${response.error}`);
+      }
+    } catch (error) {
+      console.error('Error scraping proxies:', error);
+      alert('Failed to scrape proxies. Make sure the backend is running.');
+    } finally {
+      setScraping(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -139,13 +161,32 @@ export default function ProxyManager() {
           </h2>
           <p className="text-gray-400 mt-1">Configure and test proxy servers</p>
         </div>
-        <button
-          onClick={() => setShowAddDialog(true)}
-          className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Proxy
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleScrapeProxies}
+            disabled={scraping}
+            className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-500/50 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors"
+          >
+            {scraping ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Scraping...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                Scrape Proxies
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => setShowAddDialog(true)}
+            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Proxy
+          </button>
+        </div>
       </div>
 
       {/* Proxy List */}

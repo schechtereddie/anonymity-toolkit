@@ -36,6 +36,9 @@ pub fn run() {
             sidecar::delete_proxy,
             sidecar::get_active_proxy,
             sidecar::set_active_proxy,
+            // Proxy scraper commands
+            sidecar::scrape_proxies,
+            sidecar::scrape_proxies_by_region,
         ])
         .setup(|app| {
             // Auto-start the Python sidecar
