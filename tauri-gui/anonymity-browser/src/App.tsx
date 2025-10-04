@@ -6,8 +6,9 @@ import ProfileManager from "./components/ProfileManager";
 import BrowserLauncher from "./components/BrowserLauncher";
 import LeakDetector from "./components/LeakDetector";
 import ProxyManager from "./components/ProxyManager";
+import Settings from "./components/Settings";
 
-type TabType = "home" | "profiles" | "browser" | "leaks" | "proxies";
+type TabType = "home" | "profiles" | "browser" | "leaks" | "proxies" | "settings";
 
 function App() {
   const [status, setStatus] = useState<string>("Initializing...");
@@ -147,6 +148,12 @@ function App() {
               icon={Globe}
               label="Proxies"
             />
+            <TabButton
+              active={activeTab === "settings"}
+              onClick={() => setActiveTab("settings")}
+              icon={Menu}
+              label="Settings"
+            />
           </div>
         </div>
       </nav>
@@ -278,6 +285,7 @@ function App() {
         {activeTab === "browser" && <BrowserLauncher />}
         {activeTab === "leaks" && <LeakDetector />}
         {activeTab === "proxies" && <ProxyManager />}
+        {activeTab === "settings" && <Settings />}
       </main>
 
       {/* Footer */}
