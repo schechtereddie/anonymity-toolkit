@@ -29,6 +29,13 @@ pub fn run() {
             sidecar::get_sidecar_status,
             sidecar::launch_browser,
             sidecar::run_leak_test,
+            // Proxy management commands
+            sidecar::add_proxy,
+            sidecar::list_proxies,
+            sidecar::test_proxy,
+            sidecar::delete_proxy,
+            sidecar::get_active_proxy,
+            sidecar::set_active_proxy,
         ])
         .setup(|app| {
             // Auto-start the Python sidecar

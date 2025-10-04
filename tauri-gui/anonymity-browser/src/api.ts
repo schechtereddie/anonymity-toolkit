@@ -23,6 +23,20 @@ export interface Profile {
   };
 }
 
+export interface Proxy {
+  id: string;
+  name: string;
+  type: 'socks5' | 'http' | 'https';
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+  status: 'active' | 'inactive' | 'testing';
+  last_tested?: string;
+  response_time?: number;
+  created_at?: string;
+}
+
 /**
  * Start the Python sidecar process
  */
@@ -101,6 +115,72 @@ export async function launchBrowser(
 export async function runLeakTest(testType?: string): Promise<SidecarResponse> {
   return await invoke<SidecarResponse>("run_leak_test", {
     testType,
+  });
+}
+
+// Proxy Management API
+
+/**
+ * Add a new proxy
+ */
+export async function addProxy(
+  id: string,
+  name: string,
+  proxyType: 'socks5' | 'http' | 'https',
+  host: string,
+  port: number,
+  username?: string,
+  password?: string
+): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("add_proxy", {
+    id,
+    name,
+    proxyType,
+    host,
+    port,
+    username,
+    password,
+  });
+}
+
+/**
+ * List all proxies
+ */
+export async function listProxies(): Promise<SidecarResponse & { proxies?: Proxy[] }> {
+  return await invoke<SidecarResponse>("list_proxies");
+}
+
+/**
+ * Test a proxy connection
+ */
+export async function testProxy(proxyId: string): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("test_proxy", {
+    proxyId,
+  });
+}
+
+/**
+ * Delete a proxy
+ */
+export async function deleteProxy(proxyId: string): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("delete_proxy", {
+    proxyId,
+  });
+}
+
+/**
+ * Get the currently active proxy
+ */
+export async function getActiveProxy(): Promise<SidecarResponse & { proxy?: Proxy }> {
+  return await invoke<SidecarResponse>("get_active_proxy");
+}
+
+/**
+ * Set the active proxy (pass null to clear)
+ */
+export async function setActiveProxy(proxyId: string | null): Promise<SidecarResponse> {
+  return await invoke<SidecarResponse>("set_active_proxy", {
+    proxyId,
   });
 }
 

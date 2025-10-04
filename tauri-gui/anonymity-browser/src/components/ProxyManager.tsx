@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, RefreshCw, CheckCircle, XCircle, Globe, Shield } from 'lucide-react';
+import { addProxy, listProxies, testProxy, deleteProxy, getActiveProxy, setActiveProxy } from '../api';
 
 interface Proxy {
   id: string;
@@ -37,11 +38,9 @@ export default function ProxyManager() {
   const loadProxies = async () => {
     setLoading(true);
     try {
-      // TODO: Implement actual proxy loading from backend
-      // For now, load from localStorage
-      const stored = localStorage.getItem('proxies');
-      if (stored) {
-        setProxies(JSON.parse(stored));
+      const response = await listProxies();
+      if (response.success && response.proxies) {
+        setProxies(response.proxies);
       }
     } catch (error) {
       console.error('Failed to load proxies:', error);
@@ -50,62 +49,69 @@ export default function ProxyManager() {
     }
   };
 
-  const saveProxies = (newProxies: Proxy[]) => {
-    localStorage.setItem('proxies', JSON.stringify(newProxies));
-    setProxies(newProxies);
-  };
-
-  const handleAddProxy = () => {
+  const handleAddProxy = async () => {
     if (!formData.name || !formData.host || !formData.port) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const newProxy: Proxy = {
-      id: Date.now().toString(),
-      name: formData.name,
-      type: formData.type,
-      host: formData.host,
-      port: parseInt(formData.port),
-      username: formData.username || undefined,
-      password: formData.password || undefined,
-      status: 'inactive',
-    };
+    try {
+      const proxyId = Date.now().toString();
+      const response = await addProxy(
+        proxyId,
+        formData.name,
+        formData.type,
+        formData.host,
+        parseInt(formData.port),
+        formData.username || undefined,
+        formData.password || undefined
+      );
 
-    saveProxies([...proxies, newProxy]);
-    setShowAddDialog(false);
-    resetForm();
+      if (response.success) {
+        await loadProxies();
+        setShowAddDialog(false);
+        resetForm();
+      } else {
+        alert(`Failed to add proxy: ${response.error}`);
+      }
+    } catch (error) {
+      console.error('Error adding proxy:', error);
+      alert('Failed to add proxy');
+    }
   };
 
-  const handleDeleteProxy = (id: string) => {
+  const handleDeleteProxy = async (id: string) => {
     if (confirm('Are you sure you want to delete this proxy?')) {
-      saveProxies(proxies.filter(p => p.id !== id));
+      try {
+        const response = await deleteProxy(id);
+        if (response.success) {
+          await loadProxies();
+        } else {
+          alert(`Failed to delete proxy: ${response.error}`);
+        }
+      } catch (error) {
+        console.error('Error deleting proxy:', error);
+        alert('Failed to delete proxy');
+      }
     }
   };
 
   const handleTestProxy = async (id: string) => {
     setTestingProxy(id);
-    const proxy = proxies.find(p => p.id === id);
-    if (!proxy) return;
 
     try {
-      // Simulate proxy test
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update proxy status
-      const updatedProxies = proxies.map(p => 
-        p.id === id 
-          ? { ...p, status: 'active' as const, lastTested: new Date().toISOString(), responseTime: Math.random() * 500 + 100 }
-          : p
-      );
-      saveProxies(updatedProxies);
+      const response = await testProxy(id);
+
+      if (response.success) {
+        // Reload proxies to get updated status
+        await loadProxies();
+      } else {
+        alert(`Proxy test failed: ${response.error}`);
+        await loadProxies();
+      }
     } catch (error) {
-      const updatedProxies = proxies.map(p => 
-        p.id === id 
-          ? { ...p, status: 'inactive' as const, lastTested: new Date().toISOString() }
-          : p
-      );
-      saveProxies(updatedProxies);
+      console.error('Error testing proxy:', error);
+      alert('Failed to test proxy');
     } finally {
       setTestingProxy(null);
     }

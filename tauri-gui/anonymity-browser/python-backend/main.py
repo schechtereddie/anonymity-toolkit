@@ -8,7 +8,11 @@ import sys
 import json
 import logging
 import traceback
-from typing import Dict, Any, Optional
+import sqlite3
+import time
+import requests
+from typing import Dict, Any, Optional, List
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -21,6 +25,231 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+class ProxyManager:
+    """Manages proxy configurations and testing"""
+
+    def __init__(self, db_path: str = "proxies.db"):
+        self.db_path = db_path
+        self._init_database()
+        logger.info("✅ ProxyManager initialized")
+
+    def _init_database(self):
+        """Initialize the proxy database"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS proxies (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                type TEXT NOT NULL,
+                host TEXT NOT NULL,
+                port INTEGER NOT NULL,
+                username TEXT,
+                password TEXT,
+                status TEXT DEFAULT 'inactive',
+                last_tested TEXT,
+                response_time REAL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS active_proxy (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                proxy_id TEXT,
+                FOREIGN KEY (proxy_id) REFERENCES proxies(id)
+            )
+        ''')
+
+        conn.commit()
+        conn.close()
+
+    def add_proxy(self, proxy_id: str, name: str, proxy_type: str, host: str,
+                  port: int, username: Optional[str] = None,
+                  password: Optional[str] = None) -> bool:
+        """Add a new proxy"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                INSERT INTO proxies (id, name, type, host, port, username, password)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (proxy_id, name, proxy_type, host, port, username, password))
+
+            conn.commit()
+            conn.close()
+            logger.info(f"✅ Added proxy: {name}")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Failed to add proxy: {e}")
+            return False
+
+    def list_proxies(self) -> List[Dict[str, Any]]:
+        """List all proxies"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            cursor.execute('SELECT * FROM proxies ORDER BY created_at DESC')
+            rows = cursor.fetchall()
+
+            proxies = [dict(row) for row in rows]
+            conn.close()
+
+            return proxies
+        except Exception as e:
+            logger.error(f"❌ Failed to list proxies: {e}")
+            return []
+
+    def delete_proxy(self, proxy_id: str) -> bool:
+        """Delete a proxy"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            cursor.execute('DELETE FROM proxies WHERE id = ?', (proxy_id,))
+
+            conn.commit()
+            conn.close()
+            logger.info(f"✅ Deleted proxy: {proxy_id}")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Failed to delete proxy: {e}")
+            return False
+
+    def test_proxy(self, proxy_id: str) -> Dict[str, Any]:
+        """Test a proxy connection"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            cursor.execute('SELECT * FROM proxies WHERE id = ?', (proxy_id,))
+            proxy = cursor.fetchone()
+
+            if not proxy:
+                return {'success': False, 'error': 'Proxy not found'}
+
+            # Build proxy URL
+            proxy_dict = dict(proxy)
+            proxy_type = proxy_dict['type'].lower()
+            host = proxy_dict['host']
+            port = proxy_dict['port']
+            username = proxy_dict.get('username')
+            password = proxy_dict.get('password')
+
+            if username and password:
+                proxy_url = f"{proxy_type}://{username}:{password}@{host}:{port}"
+            else:
+                proxy_url = f"{proxy_type}://{host}:{port}"
+
+            # Test the proxy
+            start_time = time.time()
+            try:
+                response = requests.get(
+                    'https://httpbin.org/ip',
+                    proxies={
+                        'http': proxy_url,
+                        'https': proxy_url
+                    },
+                    timeout=10
+                )
+                response_time = (time.time() - start_time) * 1000  # Convert to ms
+
+                if response.status_code == 200:
+                    # Update proxy status
+                    cursor.execute('''
+                        UPDATE proxies
+                        SET status = 'active',
+                            last_tested = ?,
+                            response_time = ?
+                        WHERE id = ?
+                    ''', (datetime.now().isoformat(), response_time, proxy_id))
+
+                    conn.commit()
+                    conn.close()
+
+                    return {
+                        'success': True,
+                        'status': 'active',
+                        'response_time': response_time,
+                        'ip': response.json().get('origin', 'unknown')
+                    }
+                else:
+                    raise Exception(f"HTTP {response.status_code}")
+
+            except Exception as test_error:
+                # Update proxy status to inactive
+                cursor.execute('''
+                    UPDATE proxies
+                    SET status = 'inactive',
+                        last_tested = ?
+                    WHERE id = ?
+                ''', (datetime.now().isoformat(), proxy_id))
+
+                conn.commit()
+                conn.close()
+
+                return {
+                    'success': False,
+                    'status': 'inactive',
+                    'error': str(test_error)
+                }
+
+        except Exception as e:
+            logger.error(f"❌ Failed to test proxy: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def get_active_proxy(self) -> Optional[Dict[str, Any]]:
+        """Get the currently active proxy"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                SELECT p.* FROM proxies p
+                JOIN active_proxy ap ON p.id = ap.proxy_id
+                WHERE ap.id = 1
+            ''')
+
+            proxy = cursor.fetchone()
+            conn.close()
+
+            return dict(proxy) if proxy else None
+        except Exception as e:
+            logger.error(f"❌ Failed to get active proxy: {e}")
+            return None
+
+    def set_active_proxy(self, proxy_id: Optional[str]) -> bool:
+        """Set the active proxy"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            if proxy_id is None:
+                # Clear active proxy
+                cursor.execute('DELETE FROM active_proxy WHERE id = 1')
+            else:
+                # Set active proxy
+                cursor.execute('''
+                    INSERT OR REPLACE INTO active_proxy (id, proxy_id)
+                    VALUES (1, ?)
+                ''', (proxy_id,))
+
+            conn.commit()
+            conn.close()
+            logger.info(f"✅ Set active proxy: {proxy_id}")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Failed to set active proxy: {e}")
+            return False
+
+
 class SidecarServer:
     """Main sidecar server that handles commands from Tauri"""
     
@@ -30,7 +259,8 @@ class SidecarServer:
         self.profile_generator = None
         self.browser_launcher = None
         self.leak_detector = None
-        
+        self.proxy_manager = None
+
         logger.info("🚀 Python Sidecar starting...")
         self._initialize_modules()
     
@@ -39,12 +269,13 @@ class SidecarServer:
         try:
             # Import core modules
             from core.persistent_profiles import ProfileDatabase, ProfileGenerator
-            
+
             self.profile_db = ProfileDatabase()
             self.profile_generator = ProfileGenerator()
-            
+            self.proxy_manager = ProxyManager()
+
             logger.info("✅ Core modules initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to initialize modules: {e}")
             logger.error(traceback.format_exc())
@@ -61,6 +292,13 @@ class SidecarServer:
             'launch_browser': self.handle_launch_browser,
             'run_leak_test': self.handle_run_leak_test,
             'get_status': self.handle_get_status,
+            # Proxy management commands
+            'add_proxy': self.handle_add_proxy,
+            'list_proxies': self.handle_list_proxies,
+            'test_proxy': self.handle_test_proxy,
+            'delete_proxy': self.handle_delete_proxy,
+            'get_active_proxy': self.handle_get_active_proxy,
+            'set_active_proxy': self.handle_set_active_proxy,
         }
         
         handler = handlers.get(command)
@@ -416,10 +654,121 @@ class SidecarServer:
                 'profile_db': self.profile_db is not None,
                 'profile_generator': self.profile_generator is not None,
                 'browser_launcher': self.browser_launcher is not None,
-                'leak_detector': self.leak_detector is not None
+                'leak_detector': self.leak_detector is not None,
+                'proxy_manager': self.proxy_manager is not None
             }
         }
-    
+
+    def handle_add_proxy(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add a new proxy"""
+        try:
+            proxy_id = data.get('id')
+            name = data.get('name')
+            proxy_type = data.get('type')
+            host = data.get('host')
+            port = data.get('port')
+            username = data.get('username')
+            password = data.get('password')
+
+            if not all([proxy_id, name, proxy_type, host, port]):
+                return {'success': False, 'error': 'Missing required fields'}
+
+            success = self.proxy_manager.add_proxy(
+                proxy_id, name, proxy_type, host, port, username, password
+            )
+
+            if success:
+                return {
+                    'success': True,
+                    'message': f'Proxy {name} added successfully',
+                    'proxy_id': proxy_id
+                }
+            else:
+                return {'success': False, 'error': 'Failed to add proxy'}
+
+        except Exception as e:
+            logger.error(f"Error adding proxy: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def handle_list_proxies(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """List all proxies"""
+        try:
+            proxies = self.proxy_manager.list_proxies()
+            return {
+                'success': True,
+                'proxies': proxies,
+                'count': len(proxies)
+            }
+        except Exception as e:
+            logger.error(f"Error listing proxies: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def handle_test_proxy(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Test a proxy"""
+        try:
+            proxy_id = data.get('proxy_id')
+            if not proxy_id:
+                return {'success': False, 'error': 'proxy_id is required'}
+
+            result = self.proxy_manager.test_proxy(proxy_id)
+            return result
+
+        except Exception as e:
+            logger.error(f"Error testing proxy: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def handle_delete_proxy(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Delete a proxy"""
+        try:
+            proxy_id = data.get('proxy_id')
+            if not proxy_id:
+                return {'success': False, 'error': 'proxy_id is required'}
+
+            success = self.proxy_manager.delete_proxy(proxy_id)
+
+            if success:
+                return {
+                    'success': True,
+                    'message': f'Proxy {proxy_id} deleted successfully'
+                }
+            else:
+                return {'success': False, 'error': 'Failed to delete proxy'}
+
+        except Exception as e:
+            logger.error(f"Error deleting proxy: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def handle_get_active_proxy(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Get the active proxy"""
+        try:
+            proxy = self.proxy_manager.get_active_proxy()
+            return {
+                'success': True,
+                'proxy': proxy
+            }
+        except Exception as e:
+            logger.error(f"Error getting active proxy: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def handle_set_active_proxy(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Set the active proxy"""
+        try:
+            proxy_id = data.get('proxy_id')  # Can be None to clear
+
+            success = self.proxy_manager.set_active_proxy(proxy_id)
+
+            if success:
+                return {
+                    'success': True,
+                    'message': f'Active proxy set to {proxy_id}' if proxy_id else 'Active proxy cleared'
+                }
+            else:
+                return {'success': False, 'error': 'Failed to set active proxy'}
+
+        except Exception as e:
+            logger.error(f"Error setting active proxy: {e}")
+            return {'success': False, 'error': str(e)}
+
     def run(self):
         """Main event loop - read commands from stdin"""
         logger.info("📡 Sidecar ready, waiting for commands...")

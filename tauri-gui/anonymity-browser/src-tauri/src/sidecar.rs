@@ -213,7 +213,85 @@ pub async fn run_leak_test(
     let data = serde_json::json!({
         "test_type": test_type,
     });
-    
+
     sidecar.send_command("run_leak_test", data)
+}
+
+// Proxy Management Commands
+
+#[tauri::command]
+pub async fn add_proxy(
+    sidecar: State<'_, PythonSidecar>,
+    id: String,
+    name: String,
+    proxy_type: String,
+    host: String,
+    port: u16,
+    username: Option<String>,
+    password: Option<String>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "id": id,
+        "name": name,
+        "type": proxy_type,
+        "host": host,
+        "port": port,
+        "username": username,
+        "password": password,
+    });
+
+    sidecar.send_command("add_proxy", data)
+}
+
+#[tauri::command]
+pub async fn list_proxies(
+    sidecar: State<'_, PythonSidecar>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({});
+    sidecar.send_command("list_proxies", data)
+}
+
+#[tauri::command]
+pub async fn test_proxy(
+    sidecar: State<'_, PythonSidecar>,
+    proxy_id: String,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "proxy_id": proxy_id,
+    });
+
+    sidecar.send_command("test_proxy", data)
+}
+
+#[tauri::command]
+pub async fn delete_proxy(
+    sidecar: State<'_, PythonSidecar>,
+    proxy_id: String,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "proxy_id": proxy_id,
+    });
+
+    sidecar.send_command("delete_proxy", data)
+}
+
+#[tauri::command]
+pub async fn get_active_proxy(
+    sidecar: State<'_, PythonSidecar>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({});
+    sidecar.send_command("get_active_proxy", data)
+}
+
+#[tauri::command]
+pub async fn set_active_proxy(
+    sidecar: State<'_, PythonSidecar>,
+    proxy_id: Option<String>,
+) -> Result<SidecarResponse, String> {
+    let data = serde_json::json!({
+        "proxy_id": proxy_id,
+    });
+
+    sidecar.send_command("set_active_proxy", data)
 }
 
