@@ -5,8 +5,9 @@ import { pingSidecar, getSidecarStatus, startSidecar } from "./api";
 import ProfileManager from "./components/ProfileManager";
 import BrowserLauncher from "./components/BrowserLauncher";
 import LeakDetector from "./components/LeakDetector";
+import ProxyManager from "./components/ProxyManager";
 
-type TabType = "home" | "profiles" | "browser" | "leaks";
+type TabType = "home" | "profiles" | "browser" | "leaks" | "proxies";
 
 function App() {
   const [status, setStatus] = useState<string>("Initializing...");
@@ -140,6 +141,12 @@ function App() {
               icon={Eye}
               label="Leak Detection"
             />
+            <TabButton
+              active={activeTab === "proxies"}
+              onClick={() => setActiveTab("proxies")}
+              icon={Globe}
+              label="Proxies"
+            />
           </div>
         </div>
       </nav>
@@ -270,6 +277,7 @@ function App() {
         {activeTab === "profiles" && <ProfileManager />}
         {activeTab === "browser" && <BrowserLauncher />}
         {activeTab === "leaks" && <LeakDetector />}
+        {activeTab === "proxies" && <ProxyManager />}
       </main>
 
       {/* Footer */}
