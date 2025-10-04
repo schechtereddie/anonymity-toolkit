@@ -1,0 +1,57 @@
+{
+  "profile_id": "new_profile_1759510168",
+  "created_at": 1759510322,
+  "sites_visited": [
+    {
+      "site": "theguardian.com",
+      "cookies": 4,
+      "status": 200
+    },
+    {
+      "site": "bit.ly",
+      "cookies": 2,
+      "status": 200
+    },
+    {
+      "site": "themeforest.net",
+      "cookies": 1,
+      "status": 200
+    },
+    {
+      "site": "dropbox.com",
+      "cookies": 5,
+      "status": 200
+    },
+    {
+      "site": "reddit.com",
+      "cookies": 6,
+      "status": 200
+    },
+    {
+      "site": "etsy.com",
+      "cookies": 7,
+      "status": 200
+    },
+    {
+      "site": "cbc.ca",
+      "cookies": 1,
+      "status": 200
+    },
+    {
+      "site": "instagram.com",
+      "cookies": 2,
+      "status": 200
+    },
+    {
+      "site": "forbes.com",
+      "cookies": 1,
+      "status": 200
+    }
+  ],
+  "histories": {
+    "3_month": 29,
+    "6_month": 29,
+    "12_month": 29
+  },
+  "total_cookies": 87
+}

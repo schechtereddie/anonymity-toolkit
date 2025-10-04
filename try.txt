@@ -1,0 +1,10 @@
+[10:14:00] 🎯 Ultimate Anonymity Toolkit v4.0 - Working GUI
+[10:14:00] ✅ All components loaded successfully
+[10:14:00] 🚀 Ready to start...
+[10:14:00] ✅ Loaded 100 websites from CSV
+[10:14:00] 📂 Loaded 5 profiles
+[10:14:12] 🔍 Location filters applied
+[10:14:17] 🔍 Location filters applied
+[10:14:18] 🔍 Location filters applied
+[10:14:31] ❌ Scraping error: name 'progress_win' is not defined
+

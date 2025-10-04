@@ -1,0 +1,32 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting selenium
+  Downloading selenium-4.36.0-py3-none-any.whl.metadata (7.5 kB)
+Requirement already satisfied: urllib3<3.0,>=2.5.0 in /var/data/python/lib/python3.12/site-packages (from urllib3[socks]<3.0,>=2.5.0->selenium) (2.5.0)
+Collecting trio<1.0,>=0.30.0 (from selenium)
+  Downloading trio-0.31.0-py3-none-any.whl.metadata (8.5 kB)
+Collecting trio-websocket<1.0,>=0.12.2 (from selenium)
+  Downloading trio_websocket-0.12.2-py3-none-any.whl.metadata (5.1 kB)
+Requirement already satisfied: certifi>=2025.6.15 in /var/data/python/lib/python3.12/site-packages (from selenium) (2025.8.3)
+Requirement already satisfied: typing_extensions<5.0,>=4.14.0 in /var/data/python/lib/python3.12/site-packages (from selenium) (4.15.0)
+Requirement already satisfied: websocket-client<2.0,>=1.8.0 in /var/data/python/lib/python3.12/site-packages (from selenium) (1.8.0)
+Requirement already satisfied: attrs>=23.2.0 in /var/data/python/lib/python3.12/site-packages (from trio<1.0,>=0.30.0->selenium) (25.3.0)
+Collecting sortedcontainers (from trio<1.0,>=0.30.0->selenium)
+  Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
+Requirement already satisfied: idna in /var/data/python/lib/python3.12/site-packages (from trio<1.0,>=0.30.0->selenium) (3.10)
+Collecting outcome (from trio<1.0,>=0.30.0->selenium)
+  Downloading outcome-1.3.0.post0-py2.py3-none-any.whl.metadata (2.6 kB)
+Requirement already satisfied: sniffio>=1.3.0 in /var/data/python/lib/python3.12/site-packages (from trio<1.0,>=0.30.0->selenium) (1.3.1)
+Collecting wsproto>=0.14 (from trio-websocket<1.0,>=0.12.2->selenium)
+  Downloading wsproto-1.2.0-py3-none-any.whl.metadata (5.6 kB)
+Requirement already satisfied: pysocks!=1.5.7,<2.0,>=1.5.6 in /var/data/python/lib/python3.12/site-packages (from urllib3[socks]<3.0,>=2.5.0->selenium) (1.7.1)
+Requirement already satisfied: h11<1,>=0.9.0 in /var/data/python/lib/python3.12/site-packages (from wsproto>=0.14->trio-websocket<1.0,>=0.12.2->selenium) (0.16.0)
+Downloading selenium-4.36.0-py3-none-any.whl (9.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.6/9.6 MB 13.1 MB/s  0:00:00
+Downloading trio-0.31.0-py3-none-any.whl (512 kB)
+Downloading trio_websocket-0.12.2-py3-none-any.whl (21 kB)
+Downloading outcome-1.3.0.post0-py2.py3-none-any.whl (10 kB)
+Downloading wsproto-1.2.0-py3-none-any.whl (24 kB)
+Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)
+Installing collected packages: sortedcontainers, wsproto, outcome, trio, trio-websocket, selenium
+
+Successfully installed outcome-1.3.0.post0 selenium-4.36.0 sortedcontainers-2.4.0 trio-0.31.0 trio-websocket-0.12.2 wsproto-1.2.0

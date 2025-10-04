@@ -1,0 +1,53 @@
+# Enhanced Ultimate Anonymity Toolkit v6.0 - Requirements
+# Install these dependencies for the enhanced system
+
+# Core dependencies
+tkinter>=8.6          # GUI framework (usually included with Python)
+psutil>=5.9.0         # System and process monitoring
+requests>=2.31.0      # HTTP requests for proxy scraping
+beautifulsoup4>=4.12.2 # HTML parsing for proxy extraction
+lxml>=4.9.3          # Fast XML/HTML parsing
+urllib3>=1.26.16     # HTTP library for requests
+
+# Enhanced browser automation
+selenium>=4.15.0      # Browser automation framework
+undetected-chromedriver>=3.5.4  # Stealth browser automation
+seleniumbase>=4.15.0  # All-in-one browser automation framework
+
+# Advanced networking
+aiohttp>=3.8.0        # Async HTTP client for fast requests
+aiohttp-socks>=0.8.0  # SOCKS proxy support for aiohttp
+PySocks>=1.7.1       # SOCKS proxy support
+
+# Data processing and storage
+pandas>=1.5.0         # Data analysis and manipulation
+sqlite3              # Database (included with Python)
+
+# Web frameworks (for potential API)
+fastapi>=0.100.0      # Modern web framework
+uvicorn[standard]>=0.20.0  # ASGI server
+pydantic>=2.0.0       # Data validation
+python-multipart>=0.0.6  # File uploads
+
+# Development and testing
+pytest>=7.0.0         # Testing framework
+black>=23.0.0         # Code formatting
+flake8>=6.0.0         # Code linting
+
+# Optional: For enhanced features
+# playwright>=1.40.0    # Alternative browser automation
+# pyppeteer>=1.0.2      # Puppeteer for Python
+# browserforge>=0.2.0   # Advanced fingerprinting
+
+# System utilities
+pywin32>=306          # Windows-specific utilities (Windows only)
+pygetwindow>=0.0.9    # Cross-platform window management
+
+# Logging and monitoring
+loguru>=0.7.0         # Beautiful logging
+python-json-logger>=2.0.0  # JSON logging for structured logs
+
+# Optional: For advanced features
+# psycopg2>=2.9.0       # PostgreSQL database support
+# redis>=4.5.0          # Redis cache support
+# cryptography>=39.0.0  # Encryption utilities

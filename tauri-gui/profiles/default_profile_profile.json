@@ -1,0 +1,62 @@
+{
+  "profile_id": "default_profile",
+  "created_at": 1759510291,
+  "sites_visited": [
+    {
+      "site": "themeforest.net",
+      "cookies": 1,
+      "status": 200
+    },
+    {
+      "site": "dropbox.com",
+      "cookies": 5,
+      "status": 200
+    },
+    {
+      "site": "youtu.be",
+      "cookies": 6,
+      "status": 200
+    },
+    {
+      "site": "huffingtonpost.com",
+      "cookies": 3,
+      "status": 200
+    },
+    {
+      "site": "imdb.com",
+      "cookies": 4,
+      "status": 200
+    },
+    {
+      "site": "vk.com",
+      "cookies": 6,
+      "status": 200
+    },
+    {
+      "site": "pinterest.com",
+      "cookies": 4,
+      "status": 200
+    },
+    {
+      "site": "theguardian.com",
+      "cookies": 4,
+      "status": 200
+    },
+    {
+      "site": "igg.me",
+      "cookies": 9,
+      "status": 200
+    },
+    {
+      "site": "shopify.com",
+      "cookies": 3,
+      "status": 200
+    }
+  ],
+  "histories": {
+    "3_month": 168,
+    "6_month": 168,
+    "12_month": 168
+  },
+  "total_cookies": 504
+}
