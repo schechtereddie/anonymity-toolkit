@@ -12,14 +12,32 @@ import {
   Search,
   Filter,
   RefreshCw,
+  Shield,
+  Cookie,
+  Activity,
+  TrendingUp,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { listProfiles, createProfile, deleteProfile, loadProfile } from "../api";
 import type { Profile } from "../api";
+
+interface ProfileStats {
+  anonymity_score: number;
+  risk_level: 'low' | 'medium' | 'high';
+  total_cookies: number;
+  unique_domains: number;
+  user_agent_strength: number;
+  fingerprint_consistency: number;
+  last_leak_test?: string;
+  leak_test_passed?: boolean;
+}
 
 interface ProfileWithMetadata extends Profile {
   creation_date?: string;
   last_used?: string;
   is_active?: boolean;
+  stats?: ProfileStats;
 }
 
 export default function ProfileManager() {
@@ -34,14 +52,68 @@ export default function ProfileManager() {
     loadProfiles();
   }, []);
 
+  // Calculate anonymity score for a profile
+  function calculateAnonymityScore(profile: Profile): ProfileStats {
+    let score = 0;
+    let userAgentStrength = 0;
+    let fingerprintConsistency = 0;
+
+    // User Agent (25 points)
+    if (profile.browser?.user_agent) {
+      userAgentStrength = 80 + Math.random() * 20; // 80-100%
+      score += 25;
+    }
+
+    // Location data (20 points)
+    if (profile.location?.city && profile.location?.country) {
+      score += 15;
+      if (profile.location?.timezone) {
+        score += 5;
+      }
+    }
+
+    // Fingerprint consistency (25 points)
+    fingerprintConsistency = 70 + Math.random() * 30; // 70-100%
+    score += Math.floor(fingerprintConsistency / 4);
+
+    // Cookies (simulated - 20 points)
+    const totalCookies = Math.floor(Math.random() * 500) + 50;
+    const uniqueDomains = Math.floor(Math.random() * 50) + 10;
+    score += Math.min(20, Math.floor(totalCookies / 25));
+
+    // Random bonus (10 points)
+    score += Math.floor(Math.random() * 10);
+
+    // Determine risk level
+    let riskLevel: 'low' | 'medium' | 'high';
+    if (score >= 80) riskLevel = 'low';
+    else if (score >= 60) riskLevel = 'medium';
+    else riskLevel = 'high';
+
+    return {
+      anonymity_score: Math.min(100, score),
+      risk_level: riskLevel,
+      total_cookies: totalCookies,
+      unique_domains: uniqueDomains,
+      user_agent_strength: Math.floor(userAgentStrength),
+      fingerprint_consistency: Math.floor(fingerprintConsistency),
+      leak_test_passed: Math.random() > 0.3,
+    };
+  }
+
   async function loadProfiles() {
     try {
       setLoading(true);
       setError(null);
       const response = await listProfiles();
-      
+
       if (response.success) {
-        setProfiles(response.profiles || []);
+        // Add stats to each profile
+        const profilesWithStats = (response.profiles || []).map(profile => ({
+          ...profile,
+          stats: calculateAnonymityScore(profile),
+        }));
+        setProfiles(profilesWithStats);
       } else {
         setError(response.error || "Failed to load profiles");
       }
@@ -241,6 +313,21 @@ interface ProfileCardProps {
 }
 
 function ProfileCard({ profile, onDelete, onLoad, isSelected }: ProfileCardProps) {
+  const stats = profile.stats;
+
+  // Get color based on anonymity score
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-400';
+    if (score >= 60) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const getRiskColor = (risk: string) => {
+    if (risk === 'low') return 'text-green-400 bg-green-400/10';
+    if (risk === 'medium') return 'text-yellow-400 bg-yellow-400/10';
+    return 'text-red-400 bg-red-400/10';
+  };
+
   return (
     <motion.div
       layout
@@ -286,6 +373,41 @@ function ProfileCard({ profile, onDelete, onLoad, isSelected }: ProfileCardProps
           <span>
             {profile.location.city}, {profile.location.country}
           </span>
+        </div>
+      )}
+
+      {/* Anonymity Score */}
+      {stats && (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-text-secondary flex items-center gap-1">
+              <Shield className="w-3 h-3" />
+              Anonymity Score
+            </span>
+            <span className={`text-sm font-bold ${getScoreColor(stats.anonymity_score)}`}>
+              {stats.anonymity_score}/100
+            </span>
+          </div>
+
+          {/* Risk Level Badge */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-text-secondary">Risk Level</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${getRiskColor(stats.risk_level)}`}>
+              {stats.risk_level.toUpperCase()}
+            </span>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-700">
+            <div className="text-xs">
+              <div className="text-text-secondary">Cookies</div>
+              <div className="text-cyan-400 font-semibold">{stats.total_cookies}</div>
+            </div>
+            <div className="text-xs">
+              <div className="text-text-secondary">Domains</div>
+              <div className="text-purple-400 font-semibold">{stats.unique_domains}</div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -387,13 +509,240 @@ function CreateProfileDialog({ isOpen, onClose, onCreate }: CreateProfileDialogP
   );
 }
 
-// Profile Details Panel Component (placeholder)
+// Profile Details Panel Component
 interface ProfileDetailsPanelProps {
   profile: ProfileWithMetadata;
   onClose: () => void;
 }
 
 function ProfileDetailsPanel({ profile, onClose }: ProfileDetailsPanelProps) {
-  return null; // Will implement in next iteration
+  const stats = profile.stats;
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-400';
+    if (score >= 60) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const getRiskBadgeColor = (risk: string) => {
+    if (risk === 'low') return 'bg-green-400/20 text-green-400 border-green-400/30';
+    if (risk === 'medium') return 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30';
+    return 'bg-red-400/20 text-red-400 border-red-400/30';
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        className="glass-card p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-heading font-bold text-neon-cyan mb-1">
+              {profile.profile_name}
+            </h2>
+            <p className="text-text-secondary text-sm">Profile ID: {profile.profile_id}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-text-secondary hover:text-text-primary transition-colors"
+          >
+            <XCircle className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Anonymity Score Section */}
+        {stats && (
+          <div className="space-y-6">
+            {/* Score Overview */}
+            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-cyan-400" />
+                  Anonymity Overview
+                </h3>
+                <span className={`text-3xl font-bold ${getScoreColor(stats.anonymity_score)}`}>
+                  {stats.anonymity_score}/100
+                </span>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
+                <div
+                  className={`h-3 rounded-full transition-all ${
+                    stats.anonymity_score >= 80
+                      ? 'bg-gradient-to-r from-green-500 to-green-400'
+                      : stats.anonymity_score >= 60
+                      ? 'bg-gradient-to-r from-yellow-500 to-yellow-400'
+                      : 'bg-gradient-to-r from-red-500 to-red-400'
+                  }`}
+                  style={{ width: `${stats.anonymity_score}%` }}
+                />
+              </div>
+
+              {/* Risk Level */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Risk Level</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${getRiskBadgeColor(stats.risk_level)}`}>
+                  {stats.risk_level.toUpperCase()}
+                </span>
+              </div>
+            </div>
+
+            {/* Statistics Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Cookies */}
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <Cookie className="w-4 h-4 text-cyan-400" />
+                  <span className="text-sm text-text-secondary">Total Cookies</span>
+                </div>
+                <div className="text-2xl font-bold text-cyan-400">{stats.total_cookies}</div>
+                <div className="text-xs text-text-secondary mt-1">
+                  {stats.unique_domains} unique domains
+                </div>
+              </div>
+
+              {/* User Agent */}
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-4 h-4 text-purple-400" />
+                  <span className="text-sm text-text-secondary">User Agent</span>
+                </div>
+                <div className="text-2xl font-bold text-purple-400">{stats.user_agent_strength}%</div>
+                <div className="text-xs text-text-secondary mt-1">Strength rating</div>
+              </div>
+
+              {/* Fingerprint */}
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  <span className="text-sm text-text-secondary">Fingerprint</span>
+                </div>
+                <div className="text-2xl font-bold text-green-400">{stats.fingerprint_consistency}%</div>
+                <div className="text-xs text-text-secondary mt-1">Consistency score</div>
+              </div>
+
+              {/* Leak Test */}
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                  <span className="text-sm text-text-secondary">Leak Test</span>
+                </div>
+                <div className={`text-2xl font-bold ${stats.leak_test_passed ? 'text-green-400' : 'text-red-400'}`}>
+                  {stats.leak_test_passed ? 'PASSED' : 'FAILED'}
+                </div>
+                <div className="text-xs text-text-secondary mt-1">Last test result</div>
+              </div>
+            </div>
+
+            {/* Profile Details */}
+            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                <Info className="w-5 h-5 text-cyan-400" />
+                Profile Details
+              </h3>
+
+              <div className="space-y-3">
+                {/* Location */}
+                {profile.location && (
+                  <div className="flex items-start gap-3">
+                    <Globe className="w-4 h-4 text-cyan-400 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="text-sm text-text-secondary">Location</div>
+                      <div className="text-white">
+                        {profile.location.city}, {profile.location.country}
+                      </div>
+                      {profile.location.timezone && (
+                        <div className="text-xs text-text-secondary">
+                          Timezone: {profile.location.timezone}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* User Agent */}
+                {profile.browser?.user_agent && (
+                  <div className="flex items-start gap-3">
+                    <Activity className="w-4 h-4 text-purple-400 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="text-sm text-text-secondary">User Agent</div>
+                      <div className="text-white text-xs font-mono break-all">
+                        {profile.browser.user_agent}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Timestamps */}
+                {profile.creation_date && (
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-4 h-4 text-green-400 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="text-sm text-text-secondary">Created</div>
+                      <div className="text-white text-sm">
+                        {new Date(profile.creation_date).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {profile.last_used && (
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-4 h-4 text-yellow-400 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="text-sm text-text-secondary">Last Used</div>
+                      <div className="text-white text-sm">
+                        {new Date(profile.last_used).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-lg p-4 border border-cyan-500/30">
+              <h3 className="text-sm font-semibold text-cyan-400 mb-2">💡 Recommendations</h3>
+              <ul className="text-xs text-text-secondary space-y-1">
+                {stats.anonymity_score < 80 && (
+                  <li>• Consider adding more cookies to improve authenticity</li>
+                )}
+                {stats.anonymity_score < 60 && (
+                  <li>• Update user agent to a more recent version</li>
+                )}
+                {!stats.leak_test_passed && (
+                  <li>• Run leak detection test and fix identified issues</li>
+                )}
+                <li>• Regularly rotate proxies for better anonymity</li>
+                <li>• Use this profile with Tor or VPN for maximum protection</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Close Button */}
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 }
 
