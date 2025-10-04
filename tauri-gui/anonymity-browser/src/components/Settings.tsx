@@ -6,19 +6,42 @@ interface SettingsData {
   autoStart: boolean;
   minimizeToTray: boolean;
   notifications: boolean;
-  
+  showWelcomeScreen: boolean;
+  checkForUpdates: boolean;
+
   // Privacy Settings
   clearCookiesOnExit: boolean;
   clearHistoryOnExit: boolean;
+  clearCacheOnExit: boolean;
   blockTrackers: boolean;
   blockAds: boolean;
-  
+  blockWebRTC: boolean;
+  disableCanvasFingerprinting: boolean;
+  randomizeTimezone: boolean;
+  disablePlugins: boolean;
+  disableJavaScript: boolean;
+  disableImages: boolean;
+
+  // Proxy Settings
+  autoRotateProxies: boolean;
+  proxyRotationInterval: number; // minutes
+  testProxyBeforeUse: boolean;
+  autoScrapeProxies: boolean;
+
   // Automation Settings
   autoRotateProfiles: boolean;
   rotationInterval: number; // minutes
   autoLeakTest: boolean;
   leakTestInterval: number; // minutes
-  
+  autoSaveSessions: boolean;
+
+  // Browser Settings
+  enableMonitoring: boolean;
+  logRequests: boolean;
+  collectFingerprints: boolean;
+  muteAudio: boolean;
+  disableNotifications: boolean;
+
   // Advanced Settings
   debugMode: boolean;
   logLevel: 'error' | 'warn' | 'info' | 'debug';
@@ -27,17 +50,42 @@ interface SettingsData {
 }
 
 const defaultSettings: SettingsData = {
+  // General
   autoStart: false,
   minimizeToTray: true,
   notifications: true,
+  showWelcomeScreen: true,
+  checkForUpdates: true,
+  // Privacy
   clearCookiesOnExit: false,
   clearHistoryOnExit: false,
+  clearCacheOnExit: false,
   blockTrackers: true,
   blockAds: true,
+  blockWebRTC: true,
+  disableCanvasFingerprinting: true,
+  randomizeTimezone: false,
+  disablePlugins: false,
+  disableJavaScript: false,
+  disableImages: false,
+  // Proxy
+  autoRotateProxies: false,
+  proxyRotationInterval: 15,
+  testProxyBeforeUse: true,
+  autoScrapeProxies: false,
+  // Automation
   autoRotateProfiles: false,
   rotationInterval: 30,
   autoLeakTest: false,
   leakTestInterval: 60,
+  autoSaveSessions: true,
+  // Browser
+  enableMonitoring: true,
+  logRequests: false,
+  collectFingerprints: true,
+  muteAudio: false,
+  disableNotifications: true,
+  // Advanced
   debugMode: false,
   logLevel: 'info',
   maxConcurrentBrowsers: 3,
@@ -135,7 +183,7 @@ export default function Settings() {
           <Zap className="w-5 h-5 text-cyan-400" />
           General
         </h3>
-        
+
         <div className="space-y-4">
           <SettingToggle
             label="Auto-start on system boot"
@@ -143,19 +191,33 @@ export default function Settings() {
             checked={settings.autoStart}
             onChange={(checked) => updateSetting('autoStart', checked)}
           />
-          
+
           <SettingToggle
             label="Minimize to system tray"
             description="Keep the application running in the background"
             checked={settings.minimizeToTray}
             onChange={(checked) => updateSetting('minimizeToTray', checked)}
           />
-          
+
           <SettingToggle
             label="Enable notifications"
             description="Show desktop notifications for important events"
             checked={settings.notifications}
             onChange={(checked) => updateSetting('notifications', checked)}
+          />
+
+          <SettingToggle
+            label="Show welcome screen"
+            description="Display welcome screen on application startup"
+            checked={settings.showWelcomeScreen}
+            onChange={(checked) => updateSetting('showWelcomeScreen', checked)}
+          />
+
+          <SettingToggle
+            label="Check for updates"
+            description="Automatically check for application updates"
+            checked={settings.checkForUpdates}
+            onChange={(checked) => updateSetting('checkForUpdates', checked)}
           />
         </div>
       </div>
@@ -164,36 +226,135 @@ export default function Settings() {
       <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
           <Shield className="w-5 h-5 text-purple-400" />
-          Privacy
+          Privacy & Security
         </h3>
-        
+
         <div className="space-y-4">
+          <div className="text-sm font-medium text-gray-300 mb-2">Cleanup on Exit</div>
+
           <SettingToggle
             label="Clear cookies on exit"
             description="Automatically delete all cookies when closing the application"
             checked={settings.clearCookiesOnExit}
             onChange={(checked) => updateSetting('clearCookiesOnExit', checked)}
           />
-          
+
           <SettingToggle
             label="Clear history on exit"
             description="Automatically delete browsing history when closing"
             checked={settings.clearHistoryOnExit}
             onChange={(checked) => updateSetting('clearHistoryOnExit', checked)}
           />
-          
+
+          <SettingToggle
+            label="Clear cache on exit"
+            description="Automatically delete browser cache when closing"
+            checked={settings.clearCacheOnExit}
+            onChange={(checked) => updateSetting('clearCacheOnExit', checked)}
+          />
+
+          <div className="text-sm font-medium text-gray-300 mb-2 mt-6">Content Blocking</div>
+
           <SettingToggle
             label="Block trackers"
             description="Block known tracking scripts and pixels"
             checked={settings.blockTrackers}
             onChange={(checked) => updateSetting('blockTrackers', checked)}
           />
-          
+
           <SettingToggle
             label="Block advertisements"
             description="Block ads and sponsored content"
             checked={settings.blockAds}
             onChange={(checked) => updateSetting('blockAds', checked)}
+          />
+
+          <SettingToggle
+            label="Block WebRTC"
+            description="Prevent WebRTC IP leaks (recommended for anonymity)"
+            checked={settings.blockWebRTC}
+            onChange={(checked) => updateSetting('blockWebRTC', checked)}
+          />
+
+          <div className="text-sm font-medium text-gray-300 mb-2 mt-6">Anti-Fingerprinting</div>
+
+          <SettingToggle
+            label="Disable canvas fingerprinting"
+            description="Prevent canvas-based browser fingerprinting"
+            checked={settings.disableCanvasFingerprinting}
+            onChange={(checked) => updateSetting('disableCanvasFingerprinting', checked)}
+          />
+
+          <SettingToggle
+            label="Randomize timezone"
+            description="Use random timezone to prevent location tracking"
+            checked={settings.randomizeTimezone}
+            onChange={(checked) => updateSetting('randomizeTimezone', checked)}
+          />
+
+          <SettingToggle
+            label="Disable plugins"
+            description="Disable browser plugins (Flash, Java, etc.)"
+            checked={settings.disablePlugins}
+            onChange={(checked) => updateSetting('disablePlugins', checked)}
+          />
+
+          <div className="text-sm font-medium text-gray-300 mb-2 mt-6">Performance vs Privacy</div>
+
+          <SettingToggle
+            label="Disable JavaScript"
+            description="Block JavaScript execution (may break some websites)"
+            checked={settings.disableJavaScript}
+            onChange={(checked) => updateSetting('disableJavaScript', checked)}
+          />
+
+          <SettingToggle
+            label="Disable images"
+            description="Don't load images (faster browsing, more private)"
+            checked={settings.disableImages}
+            onChange={(checked) => updateSetting('disableImages', checked)}
+          />
+        </div>
+      </div>
+
+      {/* Proxy Settings */}
+      <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <Globe className="w-5 h-5 text-blue-400" />
+          Proxy Management
+        </h3>
+
+        <div className="space-y-4">
+          <SettingToggle
+            label="Auto-rotate proxies"
+            description="Automatically switch to a different proxy periodically"
+            checked={settings.autoRotateProxies}
+            onChange={(checked) => updateSetting('autoRotateProxies', checked)}
+          />
+
+          {settings.autoRotateProxies && (
+            <SettingNumber
+              label="Proxy rotation interval (minutes)"
+              description="How often to switch proxies"
+              value={settings.proxyRotationInterval}
+              min={5}
+              max={1440}
+              onChange={(value) => updateSetting('proxyRotationInterval', value)}
+            />
+          )}
+
+          <SettingToggle
+            label="Test proxy before use"
+            description="Verify proxy connectivity before launching browser"
+            checked={settings.testProxyBeforeUse}
+            onChange={(checked) => updateSetting('testProxyBeforeUse', checked)}
+          />
+
+          <SettingToggle
+            label="Auto-scrape proxies"
+            description="Automatically scrape new proxies when list is low"
+            checked={settings.autoScrapeProxies}
+            onChange={(checked) => updateSetting('autoScrapeProxies', checked)}
           />
         </div>
       </div>
@@ -204,7 +365,7 @@ export default function Settings() {
           <Bell className="w-5 h-5 text-green-400" />
           Automation
         </h3>
-        
+
         <div className="space-y-4">
           <SettingToggle
             label="Auto-rotate profiles"
@@ -212,10 +373,10 @@ export default function Settings() {
             checked={settings.autoRotateProfiles}
             onChange={(checked) => updateSetting('autoRotateProfiles', checked)}
           />
-          
+
           {settings.autoRotateProfiles && (
             <SettingNumber
-              label="Rotation interval (minutes)"
+              label="Profile rotation interval (minutes)"
               description="How often to switch profiles"
               value={settings.rotationInterval}
               min={5}
@@ -223,17 +384,17 @@ export default function Settings() {
               onChange={(value) => updateSetting('rotationInterval', value)}
             />
           )}
-          
+
           <SettingToggle
             label="Auto leak testing"
             description="Automatically run leak detection tests periodically"
             checked={settings.autoLeakTest}
             onChange={(checked) => updateSetting('autoLeakTest', checked)}
           />
-          
+
           {settings.autoLeakTest && (
             <SettingNumber
-              label="Test interval (minutes)"
+              label="Leak test interval (minutes)"
               description="How often to run leak tests"
               value={settings.leakTestInterval}
               min={15}
@@ -241,6 +402,58 @@ export default function Settings() {
               onChange={(value) => updateSetting('leakTestInterval', value)}
             />
           )}
+
+          <SettingToggle
+            label="Auto-save sessions"
+            description="Automatically save browser sessions and state"
+            checked={settings.autoSaveSessions}
+            onChange={(checked) => updateSetting('autoSaveSessions', checked)}
+          />
+        </div>
+      </div>
+
+      {/* Browser Settings */}
+      <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <Globe className="w-5 h-5 text-orange-400" />
+          Browser Behavior
+        </h3>
+
+        <div className="space-y-4">
+          <SettingToggle
+            label="Enable monitoring"
+            description="Monitor browser performance and resource usage"
+            checked={settings.enableMonitoring}
+            onChange={(checked) => updateSetting('enableMonitoring', checked)}
+          />
+
+          <SettingToggle
+            label="Log requests"
+            description="Log all HTTP/HTTPS requests for debugging"
+            checked={settings.logRequests}
+            onChange={(checked) => updateSetting('logRequests', checked)}
+          />
+
+          <SettingToggle
+            label="Collect fingerprints"
+            description="Collect and analyze browser fingerprints"
+            checked={settings.collectFingerprints}
+            onChange={(checked) => updateSetting('collectFingerprints', checked)}
+          />
+
+          <SettingToggle
+            label="Mute audio"
+            description="Disable all audio output in browser"
+            checked={settings.muteAudio}
+            onChange={(checked) => updateSetting('muteAudio', checked)}
+          />
+
+          <SettingToggle
+            label="Disable notifications"
+            description="Block website notification requests"
+            checked={settings.disableNotifications}
+            onChange={(checked) => updateSetting('disableNotifications', checked)}
+          />
         </div>
       </div>
 
@@ -250,7 +463,7 @@ export default function Settings() {
           <Eye className="w-5 h-5 text-red-400" />
           Advanced
         </h3>
-        
+
         <div className="space-y-4">
           <SettingToggle
             label="Debug mode"
@@ -258,7 +471,7 @@ export default function Settings() {
             checked={settings.debugMode}
             onChange={(checked) => updateSetting('debugMode', checked)}
           />
-          
+
           <SettingSelect
             label="Log level"
             description="Minimum severity level for log messages"
@@ -271,7 +484,7 @@ export default function Settings() {
             ]}
             onChange={(value) => updateSetting('logLevel', value as any)}
           />
-          
+
           <SettingNumber
             label="Max concurrent browsers"
             description="Maximum number of browser instances to run simultaneously"
@@ -280,7 +493,7 @@ export default function Settings() {
             max={10}
             onChange={(value) => updateSetting('maxConcurrentBrowsers', value)}
           />
-          
+
           <SettingNumber
             label="Browser timeout (seconds)"
             description="Automatically close browser after this duration"
