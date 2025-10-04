@@ -519,22 +519,40 @@ interface SettingToggleProps {
 
 function SettingToggle({ label, description, checked, onChange }: SettingToggleProps) {
   return (
-    <div className="flex items-start justify-between">
+    <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
-        <label className="text-white font-medium">{label}</label>
+        <label className="text-white font-medium cursor-pointer" onClick={() => onChange(!checked)}>
+          {label}
+        </label>
         <p className="text-gray-400 text-sm mt-1">{description}</p>
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          checked ? 'bg-cyan-500' : 'bg-gray-600'
+        className={`relative inline-flex h-7 w-14 items-center rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+          checked
+            ? 'bg-gradient-to-r from-cyan-500 to-cyan-400 shadow-glow-cyan focus:ring-cyan-500'
+            : 'bg-gray-600 hover:bg-gray-500 focus:ring-gray-500'
         }`}
+        aria-checked={checked}
+        role="switch"
       >
+        <span className="sr-only">{label}</span>
         <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            checked ? 'translate-x-6' : 'translate-x-1'
+          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-all duration-300 ease-in-out ${
+            checked ? 'translate-x-8 scale-110' : 'translate-x-1 scale-100'
           }`}
-        />
+        >
+          {/* Checkmark icon when enabled */}
+          {checked && (
+            <svg
+              className="h-5 w-5 text-cyan-500 animate-fade-in"
+              fill="currentColor"
+              viewBox="0 0 12 12"
+            >
+              <path d="M3.707 5.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L5 6.586 3.707 5.293z" />
+            </svg>
+          )}
+        </span>
       </button>
     </div>
   );
