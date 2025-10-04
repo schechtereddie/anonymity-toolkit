@@ -241,6 +241,101 @@
 
 ---
 
+## 🔬 Deep Research Servers (FREE - No API Keys!)
+
+### 21. **DuckDuckGo Search MCP** ⭐ FREE
+- **Purpose:** Free web search without API keys
+- **Key Features:**
+  - Privacy-focused search
+  - No rate limits
+  - No tracking
+  - Instant results
+- **Best For:** Quick web searches, privacy-conscious research
+- **Setup:** NO API KEY REQUIRED
+- **Command:** `npx -y @modelcontextprotocol/server-duckduckgo`
+
+### 22. **Open Web Search MCP** ⭐ FREE
+- **Purpose:** Multi-engine search aggregator
+- **Key Features:**
+  - Searches: Bing, Baidu, DuckDuckGo, Brave, Exa
+  - No API keys needed
+  - Aggregated results
+  - Multiple sources
+- **Best For:** Comprehensive web research
+- **Setup:** NO API KEY REQUIRED
+- **Command:** `npx -y open-websearch-mcp`
+
+### 23. **ArXiv MCP Server** ⭐ FREE
+- **Purpose:** Search academic research papers
+- **Key Features:**
+  - Access to 2+ million papers
+  - Computer science, physics, math, etc.
+  - Full-text PDF downloads
+  - Citation information
+- **Best For:** Academic research, technical papers
+- **Setup:** NO API KEY REQUIRED
+- **Command:** `uvx arxiv-mcp-server`
+- **GitHub:** [andybrandt/mcp-simple-arxiv](https://github.com/andybrandt/mcp-simple-arxiv)
+
+### 24. **PubMed MCP Server** ⭐ FREE
+- **Purpose:** Medical and life sciences research
+- **Key Features:**
+  - 35+ million citations
+  - Medical research papers
+  - Life sciences database
+  - Free full-text access
+- **Best For:** Medical research, health sciences
+- **Setup:** NO API KEY REQUIRED
+- **Command:** `uvx pubmed-mcp-server`
+- **GitHub:** [andybrandt/mcp-simple-pubmed](https://github.com/andybrandt/mcp-simple-pubmed)
+
+### 25. **Wikipedia/Wikimedia MCP** ⭐ FREE
+- **Purpose:** Access Wikipedia encyclopedia
+- **Key Features:**
+  - Structured knowledge
+  - Multiple languages
+  - Rich content
+  - Free access
+- **Best For:** General knowledge, quick facts
+- **Setup:** NO API KEY REQUIRED
+- **Command:** `uvx wikimedia-mcp`
+
+### 26. **GPT Researcher MCP** ⭐ Autonomous Research
+- **Purpose:** Autonomous deep research agent
+- **Key Features:**
+  - Multi-source aggregation
+  - Autonomous research workflow
+  - Citation tracking
+  - Comprehensive reports
+- **Best For:** Deep research, comprehensive analysis
+- **Setup:** NO API KEY REQUIRED (uses free sources)
+- **Command:** `uvx gpt-researcher-mcp`
+- **GitHub:** [assafelovic/gpt-researcher](https://github.com/assafelovic/gpt-researcher)
+
+### 27. **Semantic Scholar MCP** ⭐ FREE
+- **Purpose:** Academic paper search and citations
+- **Key Features:**
+  - 200+ million papers
+  - Citation analysis
+  - Author information
+  - Research trends
+- **Best For:** Academic research, citation tracking
+- **Setup:** NO API KEY REQUIRED
+- **Command:** `uvx semantic-scholar-mcp`
+
+### 28. **OpenAlex MCP** ⭐ FREE
+- **Purpose:** Open access to scholarly works
+- **Key Features:**
+  - Free academic database
+  - Multiple sources (ArXiv, PubMed, etc.)
+  - Author profiles
+  - Institution data
+- **Best For:** Comprehensive academic research
+- **Setup:** NO API KEY REQUIRED
+- **Command:** `uvx openalex-mcp`
+
+---
+
 ## 📚 Documentation & Knowledge
 
 ### 19. **Notion MCP Server** ⭐ Multiple implementations
