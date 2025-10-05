@@ -704,6 +704,7 @@ class SidecarServer:
             'success': True,
             'results': results,
             'test_count': len(results),
+            'total_tests': len(results),  # Add for compatibility
             'test_type': test_type
         }
     
@@ -1010,11 +1011,17 @@ class SidecarServer:
             logger.info(f"🍪 Generating realistic cookies for profile {profile_id} ({months} months, {sites_per_month} sites/month)...")
 
             # Generate comprehensive cookies with behavioral patterns
-            cookies = self.cookie_harvester.generate_comprehensive_cookies(
+            # Note: generate_comprehensive_cookie_history returns dict with timeline keys
+            cookie_history = self.cookie_harvester.generate_comprehensive_cookie_history(
                 profile_id=profile_id,
-                months=months,
-                sites_per_month=sites_per_month
+                proxy=None,
+                include_categories=None
             )
+
+            # Flatten all cookies from all timelines
+            cookies = []
+            for timeline, cookie_list in cookie_history.items():
+                cookies.extend(cookie_list)
 
             logger.info(f"✅ Generated {len(cookies)} realistic cookies")
 
