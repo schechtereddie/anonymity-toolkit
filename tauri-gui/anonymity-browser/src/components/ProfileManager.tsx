@@ -60,7 +60,9 @@ export default function ProfileManager() {
 
     // User Agent (25 points)
     if (profile.browser?.user_agent) {
-      userAgentStrength = 80 + Math.random() * 20; // 80-100%
+      // Calculate strength based on user agent length and complexity
+      const ua = profile.browser.user_agent;
+      userAgentStrength = Math.min(100, 60 + (ua.length / 2));
       score += 25;
     }
 
@@ -73,21 +75,35 @@ export default function ProfileManager() {
     }
 
     // Fingerprint consistency (25 points)
-    fingerprintConsistency = 70 + Math.random() * 30; // 70-100%
-    score += Math.floor(fingerprintConsistency / 4);
+    // Base score on whether profile has fingerprint data
+    if (profile.browser?.user_agent) {
+      fingerprintConsistency = 85; // Consistent if profile exists
+      score += Math.floor(fingerprintConsistency / 4);
+    } else {
+      fingerprintConsistency = 50; // Low if no data
+      score += Math.floor(fingerprintConsistency / 4);
+    }
 
-    // Cookies (simulated - 20 points)
-    const totalCookies = Math.floor(Math.random() * 500) + 50;
-    const uniqueDomains = Math.floor(Math.random() * 50) + 10;
-    score += Math.min(20, Math.floor(totalCookies / 25));
+    // Cookies - REAL DATA (20 points)
+    // Get actual cookie count from profile data (will be 0 until cookies are generated)
+    const totalCookies = 0;
+    const uniqueDomains = 0;
+    // No points for cookies until they're actually generated
+    // Future: score += Math.min(20, Math.floor(totalCookies / 25));
 
-    // Random bonus (10 points)
-    score += Math.floor(Math.random() * 10);
+    // Profile completeness bonus (10 points)
+    let completenessBonus = 0;
+    if (profile.profile_name) completenessBonus += 2;
+    if (profile.location?.city) completenessBonus += 2;
+    if (profile.location?.country) completenessBonus += 2;
+    if (profile.location?.timezone) completenessBonus += 2;
+    if (profile.browser?.user_agent) completenessBonus += 2;
+    score += completenessBonus;
 
-    // Determine risk level
+    // Determine risk level based on actual score
     let riskLevel: 'low' | 'medium' | 'high';
-    if (score >= 80) riskLevel = 'low';
-    else if (score >= 60) riskLevel = 'medium';
+    if (score >= 70) riskLevel = 'low';
+    else if (score >= 50) riskLevel = 'medium';
     else riskLevel = 'high';
 
     return {
@@ -97,7 +113,7 @@ export default function ProfileManager() {
       unique_domains: uniqueDomains,
       user_agent_strength: Math.floor(userAgentStrength),
       fingerprint_consistency: Math.floor(fingerprintConsistency),
-      leak_test_passed: Math.random() > 0.3,
+      leak_test_passed: undefined, // Only set after running leak test
     };
   }
 
